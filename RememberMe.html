@@ -9,409 +9,93 @@
 <title>Remember Me</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: #0a0a0f; color: #e8e8f0; font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; min-height: 100vh; max-width: 480px; margin: 0 auto; overflow-x: hidden; }
+  .bg-glow { position: fixed; top: 0; left: 0; right: 0; height: 300px; background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+  .header { padding: 52px 24px 0; position: relative; z-index: 1; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .app-name { font-size: 11px; letter-spacing: 0.2em; color: #6366f1; text-transform: uppercase; font-weight: 700; }
+  .date-str { font-size: 13px; color: #555570; margin-top: 4px; }
+  .today-count { font-size: 12px; color: #555570; }
+  .today-count span { color: #6366f1; font-weight: 700; font-size: 15px; }
+  .tabs { display: flex; margin-top: 20px; border-bottom: 1px solid #1a1a2e; }
+  .tab { background: none; border: none; padding: 10px 16px; font-size: 13px; color: #444460; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; transition: all 0.2s; }
+  .tab.active { color: #6366f1; font-weight: 700; border-bottom-color: #6366f1; }
+  .content { padding: 0 24px 100px; position: relative; z-index: 1; min-height: calc(100vh - 120px); }
 
-  body {
-    background: #0a0a0f;
-    color: #e8e8f0;
-    font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-    min-height: 100vh;
-    max-width: 480px;
-    margin: 0 auto;
-    overflow-x: hidden;
-  }
-
-  .bg-glow {
-    position: fixed;
-    top: 0; left: 0; right: 0; height: 300px;
-    background: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .header {
-    padding: 52px 24px 0;
-    position: relative;
-    z-index: 1;
-  }
-
-  .header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-
-  .app-name {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    color: #6366f1;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
-
-  .date-str {
-    font-size: 13px;
-    color: #555570;
-    margin-top: 4px;
-  }
-
-  .today-count {
-    font-size: 12px;
-    color: #555570;
-  }
-
-  .today-count span {
-    color: #6366f1;
-    font-weight: 700;
-    font-size: 15px;
-  }
-
-  .tabs {
-    display: flex;
-    margin-top: 20px;
-    border-bottom: 1px solid #1a1a2e;
-  }
-
-  .tab {
-    background: none;
-    border: none;
-    padding: 10px 16px;
-    font-size: 13px;
-    color: #444460;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-
-  .tab.active {
-    color: #6366f1;
-    font-weight: 700;
-    border-bottom-color: #6366f1;
-  }
-
-  .content {
-    padding: 0 24px 100px;
-    position: relative;
-    z-index: 1;
-    min-height: calc(100vh - 120px);
-  }
-
-  /* 기록 탭 */
-  .record-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 48px;
-  }
-
-  .mic-outer {
-    position: relative;
-    margin-bottom: 40px;
-  }
-
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(99,102,241,0.15);
-    animation: ripple 1.5s ease-out infinite;
-    display: none;
-  }
-
-  .ripple1 { inset: -24px; animation-delay: 0s; }
-  .ripple2 { inset: -12px; animation-delay: 0.3s; }
-
+  .record-wrap { display: flex; flex-direction: column; align-items: center; padding-top: 48px; }
+  .mic-outer { position: relative; margin-bottom: 40px; }
+  .ripple { position: absolute; border-radius: 50%; background: rgba(99,102,241,0.15); animation: ripple 1.5s ease-out infinite; display: none; }
+  .ripple1 { inset: -24px; } .ripple2 { inset: -12px; animation-delay: 0.3s; }
   .recording .ripple { display: block; }
-
-  @keyframes ripple {
-    0% { transform: scale(0.9); opacity: 0.8; }
-    100% { transform: scale(1.5); opacity: 0; }
-  }
-
-  .mic-btn {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    border: 2px solid #2a2a3e;
-    background: radial-gradient(circle, #1a1a2e, #0f0f1a);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    z-index: 1;
-    transition: all 0.3s;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  .mic-btn.recording {
-    border-color: #6366f1;
-    background: radial-gradient(circle, rgba(99,102,241,0.25), rgba(99,102,241,0.08));
-    box-shadow: 0 0 40px rgba(99,102,241,0.4), 0 0 80px rgba(99,102,241,0.1);
-  }
-
-  .wave-bars {
-    display: flex;
-    gap: 5px;
-    align-items: center;
-  }
-
-  .wave-bar {
-    width: 5px;
-    background: #6366f1;
-    border-radius: 3px;
-    animation: wave 0.7s ease-in-out infinite alternate;
-  }
-
-  .wave-bar:nth-child(1) { height: 16px; animation-delay: 0s; }
-  .wave-bar:nth-child(2) { height: 26px; animation-delay: 0.1s; }
-  .wave-bar:nth-child(3) { height: 34px; animation-delay: 0.2s; }
-  .wave-bar:nth-child(4) { height: 26px; animation-delay: 0.15s; }
-  .wave-bar:nth-child(5) { height: 16px; animation-delay: 0.05s; }
-
-  @keyframes wave {
-    from { transform: scaleY(0.5); }
-    to { transform: scaleY(1.3); }
-  }
-
-  .mic-icon svg { display: block; }
-
-  .status-text {
-    font-size: 13px;
-    color: #444460;
-    margin-bottom: 28px;
-    letter-spacing: 0.05em;
-    transition: color 0.3s;
-    min-height: 20px;
-  }
-
+  @keyframes ripple { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
+  .mic-btn { width: 130px; height: 130px; border-radius: 50%; border: 2px solid #2a2a3e; background: radial-gradient(circle, #1a1a2e, #0f0f1a); cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; transition: all 0.3s; box-shadow: 0 4px 24px rgba(0,0,0,0.5); -webkit-user-select: none; user-select: none; }
+  .mic-btn.recording { border-color: #6366f1; background: radial-gradient(circle, rgba(99,102,241,0.25), rgba(99,102,241,0.08)); box-shadow: 0 0 40px rgba(99,102,241,0.4); }
+  .wave-bars { display: flex; gap: 5px; align-items: center; }
+  .wave-bar { width: 5px; background: #6366f1; border-radius: 3px; animation: wave 0.7s ease-in-out infinite alternate; }
+  .wave-bar:nth-child(1) { height: 16px; } .wave-bar:nth-child(2) { height: 26px; animation-delay: 0.1s; } .wave-bar:nth-child(3) { height: 34px; animation-delay: 0.2s; } .wave-bar:nth-child(4) { height: 26px; animation-delay: 0.15s; } .wave-bar:nth-child(5) { height: 16px; animation-delay: 0.05s; }
+  @keyframes wave { from { transform: scaleY(0.5); } to { transform: scaleY(1.3); } }
+  .status-text { font-size: 13px; color: #444460; margin-bottom: 8px; letter-spacing: 0.05em; transition: color 0.3s; min-height: 20px; text-align: center; }
   .status-text.active { color: #6366f1; }
 
-  .transcript-box {
-    width: 100%;
-    background: #111120;
-    border: 1px solid #2a2a3e;
-    border-radius: 16px;
-    padding: 16px 20px;
-    font-size: 15px;
-    line-height: 1.7;
-    min-height: 80px;
-    display: none;
-    margin-bottom: 16px;
-  }
+  /* 침묵 카운트다운 바 */
+  .silence-bar-wrap { width: 100%; height: 3px; background: #1a1a2e; border-radius: 2px; margin-bottom: 20px; overflow: hidden; opacity: 0; transition: opacity 0.3s; }
+  .silence-bar-wrap.visible { opacity: 1; }
+  .silence-bar { height: 100%; background: #6366f1; border-radius: 2px; transition: width 0.1s linear; }
 
-  .transcript-box.visible { display: block; }
+  /* 편집 가능 트랜스크립트 */
+  .transcript-edit { width: 100%; background: #111120; border: 1px solid #2a2a3e; border-radius: 16px; padding: 14px 16px; font-size: 15px; line-height: 1.7; min-height: 80px; color: #e8e8f0; font-family: inherit; outline: none; resize: none; display: none; margin-bottom: 12px; transition: border-color 0.2s; }
+  .transcript-edit:focus { border-color: #6366f1; }
+  .transcript-edit.visible { display: block; }
+  .transcript-actions { display: none; gap: 8px; width: 100%; margin-bottom: 16px; }
+  .transcript-actions.visible { display: flex; }
+  .btn-confirm { flex: 1; background: #6366f1; border: none; border-radius: 12px; padding: 11px; color: white; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .btn-discard { background: #1a1a2e; border: none; border-radius: 12px; padding: 11px 16px; color: #555570; font-size: 13px; cursor: pointer; font-family: inherit; }
 
-  .interim { color: #555570; }
-
-  .saved-msg {
-    font-size: 13px;
-    color: #6366f1;
-    min-height: 20px;
-    animation: fadeUp 0.3s ease;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .text-input-wrap {
-    width: 100%;
-    margin-top: 36px;
-  }
-
-  .input-label {
-    font-size: 11px;
-    color: #333350;
-    margin-bottom: 8px;
-    letter-spacing: 0.1em;
-  }
-
-  .input-row {
-    display: flex;
-    gap: 8px;
-  }
-
-  input[type="text"], textarea {
-    background: #111120;
-    border: 1px solid #2a2a3e;
-    border-radius: 12px;
-    padding: 12px 16px;
-    color: #e8e8f0;
-    font-size: 14px;
-    outline: none;
-    font-family: inherit;
-    transition: border-color 0.2s;
-  }
-
-  input[type="text"]:focus, textarea:focus {
-    border-color: #6366f1;
-  }
-
+  .saved-msg { font-size: 13px; color: #6366f1; min-height: 20px; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .text-input-wrap { width: 100%; margin-top: 28px; }
+  .input-label { font-size: 11px; color: #333350; margin-bottom: 8px; letter-spacing: 0.1em; }
+  .input-row { display: flex; gap: 8px; }
+  input[type="text"], textarea { background: #111120; border: 1px solid #2a2a3e; border-radius: 12px; padding: 12px 16px; color: #e8e8f0; font-size: 14px; outline: none; font-family: inherit; transition: border-color 0.2s; }
+  input[type="text"]:focus, textarea:focus { border-color: #6366f1; }
   input[type="text"]::placeholder, textarea::placeholder { color: #333350; }
-
   .input-row input { flex: 1; }
+  .btn-save { background: #6366f1; border: none; border-radius: 12px; padding: 12px 20px; color: white; font-size: 13px; cursor: pointer; font-weight: 700; font-family: inherit; white-space: nowrap; }
 
-  .btn-save {
-    background: #6366f1;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 20px;
-    color: white;
-    font-size: 13px;
-    cursor: pointer;
-    font-weight: 700;
-    font-family: inherit;
-    transition: background 0.2s;
-    white-space: nowrap;
-  }
-
-  .btn-save:active { background: #4f46e5; }
-
-  /* 목록 탭 */
+  /* 목록 */
   .list-wrap { padding-top: 24px; }
-
-  .empty-msg {
-    text-align: center;
-    color: #333350;
-    padding-top: 60px;
-    font-size: 14px;
-    line-height: 2;
-  }
-
+  .empty-msg { text-align: center; color: #333350; padding-top: 60px; font-size: 14px; line-height: 2; }
   .memo-list { display: flex; flex-direction: column; gap: 10px; }
-
-  .memo-card {
-    background: #0f0f1a;
-    border: 1px solid #1a1a2e;
-    border-radius: 14px;
-    padding: 14px 16px;
-    animation: fadeUp 0.2s ease;
-  }
-
-  .memo-text {
-    font-size: 15px;
-    line-height: 1.6;
-    color: #d8d8e8;
-    margin-bottom: 10px;
-    word-break: keep-all;
-  }
-
-  .memo-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .memo-time { font-size: 11px; color: #333350; }
-
-  .btn-del {
-    background: none;
-    border: none;
-    color: #2a2a3e;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 2px 6px;
-    line-height: 1;
-    transition: color 0.2s;
-  }
-
+  .memo-card { background: #0f0f1a; border: 1px solid #1a1a2e; border-radius: 14px; padding: 14px 16px; animation: fadeUp 0.2s ease; }
+  .memo-card.editing { border-color: #6366f1; }
+  .memo-text { font-size: 15px; line-height: 1.6; color: #d8d8e8; margin-bottom: 10px; word-break: keep-all; }
+  .memo-edit-area { width: 100%; background: #111120; border: 1px solid #6366f1; border-radius: 10px; padding: 10px 12px; color: #e8e8f0; font-size: 14px; font-family: inherit; outline: none; resize: none; line-height: 1.6; margin-bottom: 10px; display: none; }
+  .memo-footer { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .memo-time { font-size: 11px; color: #333350; flex: 1; }
+  .btn-edit { background: none; border: 1px solid #2a2a3e; color: #555570; font-size: 11px; cursor: pointer; padding: 4px 10px; border-radius: 8px; font-family: inherit; }
+  .btn-edit-save { background: #6366f1; border: none; color: white; font-size: 11px; cursor: pointer; padding: 4px 10px; border-radius: 8px; font-family: inherit; display: none; }
+  .btn-del { background: none; border: none; color: #2a2a3e; font-size: 18px; cursor: pointer; padding: 2px 6px; line-height: 1; }
   .btn-del:active { color: #f87171; }
 
-  /* 물어보기 탭 */
+  /* 물어보기 */
   .ask-wrap { padding-top: 24px; }
-
-  .ask-hint {
-    font-size: 12px;
-    color: #333350;
-    margin-bottom: 20px;
-    line-height: 1.7;
-  }
-
+  .ask-hint { font-size: 12px; color: #333350; margin-bottom: 20px; line-height: 1.7; }
   .ask-row { display: flex; gap: 8px; margin-bottom: 16px; }
   .ask-row input { flex: 1; }
-
-  .btn-ask {
-    background: #6366f1;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 20px;
-    color: white;
-    font-size: 13px;
-    cursor: pointer;
-    font-weight: 700;
-    font-family: inherit;
-    white-space: nowrap;
-    transition: background 0.2s;
-  }
-
+  .btn-ask { background: #6366f1; border: none; border-radius: 12px; padding: 12px 20px; color: white; font-size: 13px; cursor: pointer; font-weight: 700; font-family: inherit; white-space: nowrap; }
   .btn-ask:disabled { background: #2a2a3e; cursor: default; }
-
-  .quick-btns {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 24px;
-  }
-
-  .quick-btn {
-    background: #111120;
-    border: 1px solid #2a2a3e;
-    border-radius: 20px;
-    padding: 7px 14px;
-    color: #555570;
-    font-size: 12px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-  }
-
-  .quick-btn:active { border-color: #6366f1; color: #6366f1; }
-
-  .ai-answer {
-    background: #0f0f1a;
-    border: 1px solid #2a2a3e;
-    border-radius: 16px;
-    padding: 20px;
-    font-size: 14px;
-    line-height: 1.8;
-    color: #d8d8e8;
-    white-space: pre-wrap;
-    animation: fadeUp 0.3s ease;
-    display: none;
-  }
-
+  .quick-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .quick-btn { background: #111120; border: 1px solid #2a2a3e; border-radius: 20px; padding: 7px 14px; color: #555570; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .ai-answer { background: #0f0f1a; border: 1px solid #2a2a3e; border-radius: 16px; padding: 20px; font-size: 14px; line-height: 1.8; color: #d8d8e8; white-space: pre-wrap; display: none; }
   .ai-answer.visible { display: block; }
-
-  .loading-dots {
-    display: inline-flex;
-    gap: 4px;
-    align-items: center;
-  }
-
-  .loading-dots span {
-    width: 6px; height: 6px;
-    background: #6366f1;
-    border-radius: 50%;
-    animation: dot 1s ease-in-out infinite;
-  }
-
-  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-  @keyframes dot {
-    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-    40% { transform: scale(1); opacity: 1; }
-  }
+  .loading-dots { display: inline-flex; gap: 4px; align-items: center; }
+  .loading-dots span { width: 6px; height: 6px; background: #6366f1; border-radius: 50%; animation: dot 1s ease-in-out infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; } .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
 </style>
 </head>
 <body>
-
 <div class="bg-glow"></div>
-
 <div class="header">
   <div class="header-top">
     <div>
@@ -428,8 +112,6 @@
 </div>
 
 <div class="content">
-
-  <!-- 기록 탭 -->
   <div id="tab-record" class="record-wrap">
     <div class="mic-outer" id="micOuter">
       <div class="ripple ripple1"></div>
@@ -444,23 +126,18 @@
           </svg>
         </div>
         <div class="wave-bars" id="waveBars" style="display:none">
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
-          <div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
         </div>
       </button>
     </div>
-
     <div class="status-text" id="statusText">탭하면 바로 시작</div>
-
-    <div class="transcript-box" id="transcriptBox">
-      <span id="finalText"></span><span class="interim" id="interimText"></span>
+    <div class="silence-bar-wrap" id="silenceBarWrap"><div class="silence-bar" id="silenceBar" style="width:100%"></div></div>
+    <textarea class="transcript-edit" id="transcriptEdit" placeholder="음성이 여기에 나타나요..."></textarea>
+    <div class="transcript-actions" id="transcriptActions">
+      <button class="btn-discard" onclick="discardTranscript()">취소</button>
+      <button class="btn-confirm" onclick="confirmTranscript()">저장</button>
     </div>
-
     <div class="saved-msg" id="savedMsg"></div>
-
     <div class="text-input-wrap">
       <div class="input-label">또는 직접 입력</div>
       <div class="input-row">
@@ -470,12 +147,10 @@
     </div>
   </div>
 
-  <!-- 목록 탭 -->
   <div id="tab-list" class="list-wrap" style="display:none">
     <div id="memoList"></div>
   </div>
 
-  <!-- 물어보기 탭 -->
   <div id="tab-ask" class="ask-wrap" style="display:none">
     <div class="ask-hint">기록된 내용을 바탕으로 답해드려요.<br>"오늘 할 일 뭐야?", "최근에 뭐 생각했어?" 같이 물어보세요.</div>
     <div class="ask-row">
@@ -490,7 +165,6 @@
     </div>
     <div class="ai-answer" id="aiAnswer"></div>
   </div>
-
 </div>
 
 <script>
@@ -499,32 +173,26 @@ let memos = [];
 let recognition = null;
 let isRecording = false;
 let finalTranscript = '';
-let interimTranscript = '';
+let silenceTimer = null;
+let silenceInterval = null;
+const SILENCE_DELAY = 4000;
 
-// 초기화
 function init() {
   try { memos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { memos = []; }
-  updateDateStr();
-  updateTodayCount();
+  updateDateStr(); updateTodayCount();
 }
 
 function updateDateStr() {
-  const d = new Date();
-  const days = ['일','월','화','수','목','금','토'];
-  document.getElementById('dateStr').textContent =
-    `${d.getMonth()+1}월 ${d.getDate()}일 ${days[d.getDay()]}요일`;
+  const d = new Date(), days = ['일','월','화','수','목','금','토'];
+  document.getElementById('dateStr').textContent = `${d.getMonth()+1}월 ${d.getDate()}일 ${days[d.getDay()]}요일`;
 }
 
 function updateTodayCount() {
   const today = new Date().toDateString();
-  const cnt = memos.filter(m => new Date(m.ts).toDateString() === today).length;
-  document.getElementById('todayCount').textContent = cnt;
+  document.getElementById('todayCount').textContent = memos.filter(m => new Date(m.ts).toDateString() === today).length;
 }
 
-function saveMemos() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(memos));
-  updateTodayCount();
-}
+function saveMemos() { localStorage.setItem(STORAGE_KEY, JSON.stringify(memos)); updateTodayCount(); }
 
 function formatTime(ts) {
   const d = new Date(ts), now = new Date(), diff = now - d;
@@ -534,7 +202,6 @@ function formatTime(ts) {
   return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
-// 탭 전환
 function switchTab(tab) {
   ['record','list','ask'].forEach(t => {
     document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
@@ -544,113 +211,121 @@ function switchTab(tab) {
   if (tab==='list') renderList();
 }
 
-// 음성 녹음
-function toggleRecord() {
-  if (isRecording) stopRecord();
-  else startRecord();
+// ── 침묵 타이머 ──
+function resetSilenceTimer() {
+  clearSilenceTimer();
+  const barWrap = document.getElementById('silenceBarWrap');
+  const bar = document.getElementById('silenceBar');
+  barWrap.classList.add('visible');
+  bar.style.width = '100%';
+  let elapsed = 0;
+  silenceInterval = setInterval(() => {
+    elapsed += 100;
+    bar.style.width = Math.max(0, 100 - (elapsed / SILENCE_DELAY * 100)) + '%';
+  }, 100);
+  silenceTimer = setTimeout(() => { if (isRecording) stopRecord(true); }, SILENCE_DELAY);
 }
+
+function clearSilenceTimer() {
+  clearTimeout(silenceTimer); clearInterval(silenceInterval);
+  silenceTimer = null; silenceInterval = null;
+  document.getElementById('silenceBarWrap').classList.remove('visible');
+  document.getElementById('silenceBar').style.width = '100%';
+}
+
+// ── 녹음 ──
+function toggleRecord() { if (isRecording) stopRecord(false); else startRecord(); }
 
 function startRecord() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    alert('음성 인식은 Chrome 브라우저에서만 지원돼요.\nChrome으로 열어주세요!');
-    return;
-  }
-
+  if (!SR) { alert('음성 인식은 Chrome 브라우저에서만 지원돼요.'); return; }
   finalTranscript = '';
-  interimTranscript = '';
+  const edit = document.getElementById('transcriptEdit');
+  edit.value = ''; edit.classList.remove('visible');
+  document.getElementById('transcriptActions').classList.remove('visible');
 
-  function createRecognition() {
+  function makeRecog() {
     const r = new SR();
-    r.lang = 'ko-KR';
-    r.continuous = false;
-    r.interimResults = true;
-    r.maxAlternatives = 1;
-
+    r.lang = 'ko-KR'; r.continuous = false; r.interimResults = true; r.maxAlternatives = 1;
     r.onresult = (e) => {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
         else interim += e.results[i][0].transcript;
       }
-      interimTranscript = interim;
-      document.getElementById('finalText').textContent = finalTranscript;
-      document.getElementById('interimText').textContent = interimTranscript;
-      document.getElementById('transcriptBox').classList.add('visible');
+      const el = document.getElementById('transcriptEdit');
+      el.value = finalTranscript + (interim ? ' ' + interim : '');
+      el.classList.add('visible');
+      resetSilenceTimer();
     };
-
-    r.onerror = (e) => {
-      if (e.error !== 'aborted' && e.error !== 'no-speech') stopRecord();
-    };
-
-    r.onend = () => {
-      if (isRecording) {
-        try {
-          recognition = createRecognition();
-          recognition.start();
-        } catch(err) {}
-      }
-    };
+    r.onerror = (e) => { if (e.error !== 'aborted' && e.error !== 'no-speech') stopRecord(false); };
+    r.onend = () => { if (isRecording) { try { recognition = makeRecog(); recognition.start(); } catch(err) {} } };
     return r;
   }
 
-  recognition = createRecognition();
-  recognition.start();
-  isRecording = true;
-  setRecordingUI(true);
+  recognition = makeRecog(); recognition.start();
+  isRecording = true; setRecordingUI(true); resetSilenceTimer();
 }
 
-function stopRecord() {
-  if (recognition) {
-    recognition.onend = null;
-    recognition.stop();
-    recognition = null;
-  }
-  isRecording = false;
-  setRecordingUI(false);
+function stopRecord(autoSave) {
+  clearSilenceTimer();
+  if (recognition) { recognition.onend = null; recognition.stop(); recognition = null; }
+  isRecording = false; setRecordingUI(false);
 
-  const text = (finalTranscript + interimTranscript).trim();
-  if (text) {
-    setTimeout(() => {
-      addMemo(text);
+  // 편집박스를 finalTranscript만으로 정리
+  const edit = document.getElementById('transcriptEdit');
+  edit.value = finalTranscript.trim();
+  edit.placeholder = '여기서 수정할 수 있어요...';
+
+  if (finalTranscript.trim()) {
+    edit.classList.add('visible');
+    if (autoSave) {
+      addMemo(finalTranscript.trim());
+      edit.value = ''; edit.classList.remove('visible');
       finalTranscript = '';
-      interimTranscript = '';
-      document.getElementById('finalText').textContent = '';
-      document.getElementById('interimText').textContent = '';
-      document.getElementById('transcriptBox').classList.remove('visible');
-    }, 300);
+    } else {
+      document.getElementById('transcriptActions').classList.add('visible');
+    }
   }
+}
+
+function confirmTranscript() {
+  const text = document.getElementById('transcriptEdit').value.trim();
+  if (!text) return;
+  addMemo(text);
+  document.getElementById('transcriptEdit').value = '';
+  document.getElementById('transcriptEdit').classList.remove('visible');
+  document.getElementById('transcriptActions').classList.remove('visible');
+  finalTranscript = '';
+}
+
+function discardTranscript() {
+  document.getElementById('transcriptEdit').value = '';
+  document.getElementById('transcriptEdit').classList.remove('visible');
+  document.getElementById('transcriptActions').classList.remove('visible');
+  finalTranscript = '';
 }
 
 function setRecordingUI(on) {
-  const btn = document.getElementById('micBtn');
-  const outer = document.getElementById('micOuter');
-  const icon = document.getElementById('micIcon');
-  const bars = document.getElementById('waveBars');
-  const status = document.getElementById('statusText');
-
-  btn.classList.toggle('recording', on);
-  outer.classList.toggle('recording', on);
-  icon.style.display = on ? 'none' : 'block';
-  bars.style.display = on ? 'flex' : 'none';
-  status.textContent = on ? '듣고 있어요...' : '탭하면 바로 시작';
-  status.classList.toggle('active', on);
+  document.getElementById('micBtn').classList.toggle('recording', on);
+  document.getElementById('micOuter').classList.toggle('recording', on);
+  document.getElementById('micIcon').style.display = on ? 'none' : 'block';
+  document.getElementById('waveBars').style.display = on ? 'flex' : 'none';
+  const s = document.getElementById('statusText');
+  s.textContent = on ? '듣고 있어요 · 4초 침묵 시 자동저장' : '탭하면 바로 시작';
+  s.classList.toggle('active', on);
 }
 
-// 텍스트 저장
 function saveText() {
   const input = document.getElementById('textInput');
   const text = input.value.trim();
   if (!text) return;
-  addMemo(text);
-  input.value = '';
+  addMemo(text); input.value = '';
 }
 
 function addMemo(text) {
-  const memo = { id: Date.now(), text, ts: Date.now() };
-  memos.unshift(memo);
-  saveMemos();
-  showSavedMsg();
+  memos.unshift({ id: Date.now(), text, ts: Date.now() });
+  saveMemos(); showSavedMsg();
 }
 
 function showSavedMsg() {
@@ -659,88 +334,69 @@ function showSavedMsg() {
   setTimeout(() => { el.textContent = ''; }, 2000);
 }
 
-function deleteMemo(id) {
-  memos = memos.filter(m => m.id !== id);
-  saveMemos();
-  renderList();
-}
+function deleteMemo(id) { memos = memos.filter(m => m.id !== id); saveMemos(); renderList(); }
 
-// 목록 렌더링
+// ── 목록 인라인 편집 ──
 function renderList() {
   const container = document.getElementById('memoList');
   if (memos.length === 0) {
     container.innerHTML = '<div class="empty-msg">아직 기록이 없어요.<br><span style="font-size:12px;color:#2a2a3e">기록 탭에서 말하거나 입력해보세요</span></div>';
     return;
   }
-  container.innerHTML = '<div class="memo-list">' +
-    memos.map(m => `
-      <div class="memo-card">
-        <div class="memo-text">${escHtml(m.text)}</div>
-        <div class="memo-footer">
-          <span class="memo-time">${formatTime(m.ts)}</span>
-          <button class="btn-del" onclick="deleteMemo(${m.id})">×</button>
-        </div>
+  container.innerHTML = '<div class="memo-list">' + memos.map(m => `
+    <div class="memo-card" id="card-${m.id}">
+      <div class="memo-text" id="text-${m.id}">${escHtml(m.text)}</div>
+      <textarea class="memo-edit-area" id="edit-${m.id}" rows="3">${escHtml(m.text)}</textarea>
+      <div class="memo-footer">
+        <span class="memo-time">${formatTime(m.ts)}</span>
+        <button class="btn-edit" id="editbtn-${m.id}" onclick="startEdit(${m.id})">수정</button>
+        <button class="btn-edit-save" id="savebtn-${m.id}" onclick="saveEdit(${m.id})">완료</button>
+        <button class="btn-del" onclick="deleteMemo(${m.id})">×</button>
       </div>
-    `).join('') +
-  '</div>';
+    </div>`).join('') + '</div>';
 }
 
-function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function startEdit(id) {
+  document.getElementById('text-'+id).style.display = 'none';
+  document.getElementById('edit-'+id).style.display = 'block';
+  document.getElementById('editbtn-'+id).style.display = 'none';
+  document.getElementById('savebtn-'+id).style.display = 'inline-block';
+  document.getElementById('card-'+id).classList.add('editing');
+  const el = document.getElementById('edit-'+id);
+  el.focus(); el.setSelectionRange(el.value.length, el.value.length);
 }
 
-// AI 질문
-function setQuery(q) {
-  document.getElementById('queryInput').value = q;
+function saveEdit(id) {
+  const newText = document.getElementById('edit-'+id).value.trim();
+  if (!newText) return;
+  const memo = memos.find(m => m.id === id);
+  if (memo) { memo.text = newText; saveMemos(); }
+  renderList();
 }
+
+function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function setQuery(q) { document.getElementById('queryInput').value = q; }
 
 async function askAI() {
   const query = document.getElementById('queryInput').value.trim();
   if (!query) return;
-
-  const btn = document.getElementById('askBtn');
-  const answerEl = document.getElementById('aiAnswer');
-
-  btn.disabled = true;
-  btn.textContent = '...';
+  const btn = document.getElementById('askBtn'), answerEl = document.getElementById('aiAnswer');
+  btn.disabled = true; btn.textContent = '...';
   answerEl.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
   answerEl.classList.add('visible');
-
-  const memoContext = memos.slice(0, 80)
-    .map(m => {
-      const d = new Date(m.ts);
-      return `[${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}] ${m.text}`;
-    }).join('\n');
-
+  const ctx = memos.slice(0,80).map(m => { const d = new Date(m.ts); return `[${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}] ${m.text}`; }).join('\n');
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `당신은 사용자의 개인 기억 AI, RememberMe입니다.
-아래는 사용자가 직접 기록한 메모들입니다.
-반드시 이 기록만을 기반으로 질문에 답하세요.
-일반 지식이 아닌 사용자의 실제 기록에서 답을 찾으세요.
-기록에 없는 내용은 솔직하게 "기록에 없어요"라고 말하세요.
-답변은 짧고 명확하게, 한국어로 해주세요.
-
-[사용자 기록]
-${memoContext || '아직 기록이 없습니다.'}`,
-        messages: [{ role: 'user', content: query }]
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        system: `당신은 사용자의 개인 기억 AI RememberMe입니다. 아래 기록만 기반으로 답하세요. 기록에 없으면 "기록에 없어요"라고 하세요. 짧고 명확하게 한국어로.\n\n[기록]\n${ctx||'없음'}`,
+        messages: [{ role: 'user', content: query }] })
     });
-
     const data = await res.json();
-    const answer = data.content?.[0]?.text || '답변을 가져올 수 없어요.';
-    answerEl.textContent = answer;
-  } catch (e) {
-    answerEl.textContent = '연결 오류가 발생했어요. 잠시 후 다시 시도해주세요.';
-  }
-
-  btn.disabled = false;
-  btn.textContent = '물어보기';
+    answerEl.textContent = data.content?.[0]?.text || '답변을 가져올 수 없어요.';
+  } catch { answerEl.textContent = '연결 오류가 발생했어요.'; }
+  btn.disabled = false; btn.textContent = '물어보기';
 }
 
 init();
