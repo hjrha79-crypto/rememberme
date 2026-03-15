@@ -6,6 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a0f">
+<link rel="manifest" href="/rememberme/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/rememberme/icons/icon-192.png">
 <title>Remember Me</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -400,6 +402,15 @@ async function askAI() {
 }
 
 init();
+
+// PWA 서비스 워커 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/rememberme/sw.js')
+      .then(() => console.log('RememberMe SW registered'))
+      .catch((err) => console.warn('SW registration failed:', err));
+  });
+}
 </script>
 </body>
 </html>
