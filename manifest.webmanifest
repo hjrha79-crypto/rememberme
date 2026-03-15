@@ -10,7 +10,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/rememberme/icons/icon-192.png",
+      "src": "/rememberme/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
