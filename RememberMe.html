@@ -67,7 +67,8 @@
   .fixed-input-bar { position: fixed; bottom: 0; left: 64px; right: 0; max-width: 480px; background: #FAFAF7; border-top: 1px solid #E8E8E4; padding: 10px 16px; z-index: 200; display: flex; align-items: center; gap: 10px; }
   .fixed-input-bar .mic-btn { width: 48px; height: 48px; min-width: 48px; border-radius: 50%; border: 2px solid #E8E8E4; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.06); -webkit-user-select: none; user-select: none; }
   .fixed-input-bar .mic-btn.recording { border-color: #7B5CFA; background: rgba(123,92,250,0.06); box-shadow: 0 0 20px rgba(123,92,250,0.2); }
-  .fixed-input-bar input { flex: 1; border-radius: 24px; padding: 10px 16px; font-size: 14px; }
+  .fixed-input-bar input { flex: 1; border-radius: 24px; padding: 10px 16px; font-size: 14px; transition: border-color 0.3s; }
+  .fixed-input-bar input.recording { border-color: #7B5CFA; box-shadow: 0 0 0 2px rgba(123,92,250,0.15); }
   .fixed-input-bar .btn-save { background: #7B5CFA; border: none; border-radius: 24px; padding: 10px 18px; color: white; font-size: 13px; cursor: pointer; font-weight: 700; font-family: inherit; white-space: nowrap; }
 
   /* 목록 */
@@ -167,11 +168,6 @@
     <div id="tab-record" class="record-wrap">
       <div class="status-text" id="statusText">탭하면 바로 시작</div>
       <div class="silence-bar-wrap" id="silenceBarWrap"><div class="silence-bar" id="silenceBar" style="width:100%"></div></div>
-      <textarea class="transcript-edit" id="transcriptEdit" placeholder="음성이 여기에 나타나요..."></textarea>
-      <div class="transcript-actions" id="transcriptActions">
-        <button class="btn-discard" onclick="discardTranscript()">취소</button>
-        <button class="btn-confirm" onclick="confirmTranscript()">저장</button>
-      </div>
       <div class="saved-msg" id="savedMsg"></div>
       <div class="chat-wrap" id="chatWrap"></div>
     </div>
@@ -341,13 +337,12 @@ function clearSilenceTimer() {
 
 function toggleRecord() {
   if (isRecording) {
-    var text = document.getElementById('transcriptEdit').value.trim() || finalTranscript.trim();
+    var input = document.getElementById('textInput');
+    var text = input.value.trim();
     stopRecord(false);
     if (text) {
       addMemo(text);
-      document.getElementById('transcriptEdit').value = '';
-      document.getElementById('transcriptEdit').classList.remove('visible');
-      document.getElementById('transcriptActions').classList.remove('visible');
+      input.value = '';
       finalTranscript = '';
     }
   } else {
@@ -359,9 +354,8 @@ function startRecord() {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert('음성 인식은 Chrome 브라우저에서만 지원돼요.'); return; }
   finalTranscript = '';
-  var edit = document.getElementById('transcriptEdit');
-  edit.value = ''; edit.classList.remove('visible');
-  document.getElementById('transcriptActions').classList.remove('visible');
+  var input = document.getElementById('textInput');
+  input.value = '';
 
   function makeRecog() {
     var r = new SR();
@@ -372,9 +366,7 @@ function startRecord() {
         if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
         else interim += e.results[i][0].transcript;
       }
-      var el = document.getElementById('transcriptEdit');
-      el.value = finalTranscript + (interim ? ' ' + interim : '');
-      el.classList.add('visible');
+      document.getElementById('textInput').value = finalTranscript + (interim ? ' ' + interim : '');
       resetSilenceTimer();
     };
     r.onerror = function(e) { if (e.error !== 'aborted' && e.error !== 'no-speech') stopRecord(false); };
@@ -390,36 +382,13 @@ function stopRecord(autoSave) {
   clearSilenceTimer();
   if (recognition) { recognition.onend = null; recognition.stop(); recognition = null; }
   isRecording = false; setRecordingUI(false);
-  var edit = document.getElementById('transcriptEdit');
-  edit.value = finalTranscript.trim();
-  edit.placeholder = '여기서 수정할 수 있어요...';
-  if (finalTranscript.trim()) {
-    edit.classList.add('visible');
-    if (autoSave) {
-      addMemo(finalTranscript.trim());
-      edit.value = ''; edit.classList.remove('visible');
-      finalTranscript = '';
-    } else {
-      document.getElementById('transcriptActions').classList.add('visible');
-    }
+  var input = document.getElementById('textInput');
+  input.value = finalTranscript.trim();
+  if (autoSave && finalTranscript.trim()) {
+    addMemo(finalTranscript.trim());
+    input.value = '';
+    finalTranscript = '';
   }
-}
-
-function confirmTranscript() {
-  var text = document.getElementById('transcriptEdit').value.trim();
-  if (!text) return;
-  addMemo(text);
-  document.getElementById('transcriptEdit').value = '';
-  document.getElementById('transcriptEdit').classList.remove('visible');
-  document.getElementById('transcriptActions').classList.remove('visible');
-  finalTranscript = '';
-}
-
-function discardTranscript() {
-  document.getElementById('transcriptEdit').value = '';
-  document.getElementById('transcriptEdit').classList.remove('visible');
-  document.getElementById('transcriptActions').classList.remove('visible');
-  finalTranscript = '';
 }
 
 function setRecordingUI(on) {
@@ -430,18 +399,18 @@ function setRecordingUI(on) {
   var s = document.getElementById('statusText');
   s.textContent = on ? '듣고 있어요 · 침묵 시 자동저장' : '탭하면 바로 시작';
   s.classList.toggle('active', on);
+  var input = document.getElementById('textInput');
+  input.classList.toggle('recording', on);
+  input.placeholder = on ? '말하고 있어요...' : '생각을 적어요...';
 }
 
 function saveText() {
   var input = document.getElementById('textInput');
-  var transcript = document.getElementById('transcriptEdit');
-  var text = input.value.trim() || transcript.value.trim();
+  var text = input.value.trim();
   if (!text) return;
+  if (isRecording) stopRecord(false);
   addMemo(text);
   input.value = '';
-  transcript.value = '';
-  transcript.classList.remove('visible');
-  document.getElementById('transcriptActions').classList.remove('visible');
   finalTranscript = '';
   input.focus();
 }
