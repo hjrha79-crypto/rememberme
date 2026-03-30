@@ -24,8 +24,8 @@
   .tab.active { color: #7B5CFA; font-weight: 700; border-bottom-color: #7B5CFA; }
   .content { padding: 0 24px 100px; position: relative; z-index: 1; min-height: calc(100vh - 120px); }
 
-  .record-wrap { display: flex; flex-direction: column; align-items: center; padding-top: 48px; }
-  .mic-outer { position: relative; margin-bottom: 40px; }
+  .record-wrap { display: flex; flex-direction: column; align-items: center; padding-top: 24px; }
+  .mic-outer { position: relative; }
   .ripple { position: absolute; border-radius: 50%; background: rgba(123,92,250,0.12); animation: ripple 1.5s ease-out infinite; display: none; }
   .ripple1 { inset: -24px; } .ripple2 { inset: -12px; animation-delay: 0.3s; }
   .recording .ripple { display: block; }
@@ -112,9 +112,13 @@
   .chat-wrap { width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; padding-bottom: 4px; }
   .chat-bubble { background: #FFFFFF; border: 1px solid #E8E8E4; border-radius: 18px 18px 4px 18px; padding: 10px 14px; font-size: 14px; color: #2B2B2B; line-height: 1.6; align-self: flex-end; max-width: 90%; box-shadow: 0 1px 4px rgba(0,0,0,0.06); animation: fadeUp 0.2s ease; word-break: keep-all; }
   .chat-bubble .bubble-time { font-size: 10px; color: #AAAAAA; margin-top: 4px; text-align: right; }
-</style>
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #7B5CFA; color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 999; white-space: nowrap; }
   .toast.show { opacity: 1; }
+  .app-name { cursor: pointer; }
+  .mic-input-row { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; }
+  .mic-input-row .mic-btn { width: 80px; height: 80px; min-width: 80px; border-radius: 50%; border: 2px solid #E8E8E4; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.08); -webkit-user-select: none; user-select: none; }
+  .mic-input-row .mic-btn.recording { border-color: #7B5CFA; background: rgba(123,92,250,0.06); box-shadow: 0 0 32px rgba(123,92,250,0.2); }
+  .mic-input-right { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 </style>
 </head>
 <body>
@@ -123,7 +127,7 @@
 <div class="header">
   <div class="header-top">
     <div>
-      <div class="app-name">Remember Me</div>
+      <div class="app-name" onclick="switchTab('record')">Remember Me</div>
       <div class="date-str" id="dateStr"></div>
     </div>
     <div class="today-count">오늘 <span id="todayCount">0</span>개</div>
@@ -138,23 +142,6 @@
 
 <div class="content">
   <div id="tab-record" class="record-wrap">
-    <div class="mic-outer" id="micOuter">
-      <div class="ripple ripple1"></div>
-      <div class="ripple ripple2"></div>
-      <button class="mic-btn" id="micBtn" onclick="toggleRecord()">
-        <div class="mic-icon" id="micIcon">
-          <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="#7B5CFA" opacity="0.9"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="12" y1="19" x2="12" y2="23" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="8" y1="23" x2="16" y2="23" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="wave-bars" id="waveBars" style="display:none">
-          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-        </div>
-      </button>
-    </div>
     <div class="status-text" id="statusText">탭하면 바로 시작</div>
     <div class="silence-bar-wrap" id="silenceBarWrap"><div class="silence-bar" id="silenceBar" style="width:100%"></div></div>
     <textarea class="transcript-edit" id="transcriptEdit" placeholder="음성이 여기에 나타나요..."></textarea>
@@ -164,11 +151,29 @@
     </div>
     <div class="saved-msg" id="savedMsg"></div>
     <div class="chat-wrap" id="chatWrap"></div>
-    <div class="text-input-wrap">
-      <div class="input-label">또는 직접 입력</div>
-      <div class="input-row">
-        <input type="text" id="textInput" placeholder="생각을 적어요..." onkeydown="if(event.key==='Enter') saveText()">
-        <button class="btn-save" onclick="saveText()">저장</button>
+    <div class="mic-input-row">
+      <div class="mic-outer" id="micOuter">
+        <div class="ripple ripple1"></div>
+        <div class="ripple ripple2"></div>
+        <button class="mic-btn" id="micBtn" onclick="toggleRecord()">
+          <div class="mic-icon" id="micIcon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="#7B5CFA" opacity="0.9"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="12" y1="19" x2="12" y2="23" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="23" x2="16" y2="23" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="wave-bars" id="waveBars" style="display:none">
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          </div>
+        </button>
+      </div>
+      <div class="mic-input-right">
+        <div class="input-row">
+          <input type="text" id="textInput" placeholder="생각을 적어요..." onkeydown="if(event.key==='Enter') saveText()">
+          <button class="btn-save" onclick="saveText()">저장</button>
+        </div>
       </div>
     </div>
   </div>
@@ -428,12 +433,25 @@ function renderChat() {
     return;
   }
   wrap.innerHTML = todayMemos.slice().reverse().map(function(m) {
-    return '<div class="chat-bubble" id="bubble-' + m.id + '" ondblclick="editBubble(' + m.id + ')">' +
+    return '<div class="chat-bubble" id="bubble-' + m.id + '" ondblclick="editBubble(' + m.id + ')" ontouchend="handleBubbleTap(' + m.id + ')">' +
       '<div id="bubble-text-' + m.id + '">' + escHtml(m.text) + '</div>' +
       '<div class="bubble-time">' + formatTime(m.ts) + '</div>' +
     '</div>';
   }).join('');
   wrap.scrollTop = wrap.scrollHeight;
+}
+
+// 모바일 더블탭 지원
+let lastTapTime = 0;
+let lastTapId = null;
+function handleBubbleTap(id) {
+  const now = Date.now();
+  if (lastTapId === id && now - lastTapTime < 400) {
+    editBubble(id);
+    lastTapTime = 0; lastTapId = null;
+  } else {
+    lastTapTime = now; lastTapId = id;
+  }
 }
 
 function editBubble(id) {
