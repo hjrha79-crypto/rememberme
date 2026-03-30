@@ -11,18 +11,25 @@
 <title>Remember Me</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: #FAFAF7; color: #2B2B2B; font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; min-height: 100vh; max-width: 480px; margin: 0 auto; overflow-x: hidden; }
-  .bg-glow { display: none; }
-  .header { padding: 52px 24px 0; position: relative; z-index: 1; background: #FAFAF7; }
+  body { background: #FAFAF7; color: #2B2B2B; font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; }
+
+  /* 왼쪽 사이드바 */
+  .sidebar { width: 64px; min-height: 100vh; background: #FFFFFF; border-right: 1px solid #E8E8E4; display: flex; flex-direction: column; align-items: center; padding-top: 60px; gap: 4px; position: fixed; left: 0; top: 0; z-index: 100; }
+  .sidebar-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px; cursor: pointer; border: none; background: none; color: #AAAAAA; font-size: 10px; font-family: inherit; width: 100%; transition: all 0.2s; border-left: 3px solid transparent; }
+  .sidebar-item:hover { color: #7B5CFA; background: rgba(123,92,250,0.04); }
+  .sidebar-item.active { color: #7B5CFA; font-weight: 700; border-left-color: #7B5CFA; background: rgba(123,92,250,0.06); }
+  .sidebar-item svg { width: 22px; height: 22px; }
+
+  /* 메인 영역 */
+  .main-area { flex: 1; max-width: 480px; margin-left: 64px; display: flex; flex-direction: column; min-height: 100vh; }
+  .header { padding: 52px 24px 16px; position: relative; z-index: 1; background: #FAFAF7; border-bottom: 1px solid #E8E8E4; }
   .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .app-name { font-size: 11px; letter-spacing: 0.2em; color: #7B5CFA; text-transform: uppercase; font-weight: 700; }
+  .app-name { font-size: 11px; letter-spacing: 0.2em; color: #7B5CFA; text-transform: uppercase; font-weight: 700; cursor: pointer; }
   .date-str { font-size: 13px; color: #6B6B6B; margin-top: 4px; }
   .today-count { font-size: 12px; color: #6B6B6B; }
   .today-count span { color: #7B5CFA; font-weight: 700; font-size: 15px; }
-  .tabs { display: flex; margin-top: 20px; border-bottom: 1px solid #E8E8E4; }
-  .tab { background: none; border: none; padding: 10px 16px; font-size: 13px; color: #888888; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: inherit; transition: all 0.2s; }
-  .tab.active { color: #7B5CFA; font-weight: 700; border-bottom-color: #7B5CFA; }
-  .content { padding: 0 24px 100px; position: relative; z-index: 1; min-height: calc(100vh - 120px); }
+
+  .content { padding: 0 24px 140px; position: relative; z-index: 1; flex: 1; overflow-y: auto; }
 
   .record-wrap { display: flex; flex-direction: column; align-items: center; padding-top: 24px; }
   .mic-outer { position: relative; }
@@ -30,8 +37,6 @@
   .ripple1 { inset: -24px; } .ripple2 { inset: -12px; animation-delay: 0.3s; }
   .recording .ripple { display: block; }
   @keyframes ripple { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.5); opacity: 0; } }
-  .mic-btn { width: 130px; height: 130px; border-radius: 50%; border: 2px solid #E8E8E4; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.08); -webkit-user-select: none; user-select: none; }
-  .mic-btn.recording { border-color: #7B5CFA; background: rgba(123,92,250,0.06); box-shadow: 0 0 32px rgba(123,92,250,0.2); }
   .wave-bars { display: flex; gap: 5px; align-items: center; }
   .wave-bar { width: 5px; background: #7B5CFA; border-radius: 3px; animation: wave 0.7s ease-in-out infinite alternate; }
   .wave-bar:nth-child(1) { height: 16px; } .wave-bar:nth-child(2) { height: 26px; animation-delay: 0.1s; } .wave-bar:nth-child(3) { height: 34px; animation-delay: 0.2s; } .wave-bar:nth-child(4) { height: 26px; animation-delay: 0.15s; } .wave-bar:nth-child(5) { height: 16px; animation-delay: 0.05s; }
@@ -39,12 +44,10 @@
   .status-text { font-size: 13px; color: #888888; margin-bottom: 8px; letter-spacing: 0.05em; transition: color 0.3s; min-height: 20px; text-align: center; }
   .status-text.active { color: #7B5CFA; }
 
-  /* 침묵 카운트다운 바 */
   .silence-bar-wrap { width: 100%; height: 3px; background: #E8E8E4; border-radius: 2px; margin-bottom: 20px; overflow: hidden; opacity: 0; transition: opacity 0.3s; }
   .silence-bar-wrap.visible { opacity: 1; }
   .silence-bar { height: 100%; background: #7B5CFA; border-radius: 2px; transition: width 0.1s linear; }
 
-  /* 편집 가능 트랜스크립트 */
   .transcript-edit { width: 100%; background: #FFFFFF; border: 1px solid #E8E8E4; border-radius: 16px; padding: 14px 16px; font-size: 15px; line-height: 1.7; min-height: 80px; color: #2B2B2B; font-family: inherit; outline: none; resize: none; display: none; margin-bottom: 12px; transition: border-color 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
   .transcript-edit:focus { border-color: #7B5CFA; }
   .transcript-edit.visible { display: block; }
@@ -55,14 +58,17 @@
 
   .saved-msg { font-size: 13px; color: #7B5CFA; min-height: 20px; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-  .text-input-wrap { width: 100%; margin-top: 28px; }
-  .input-label { font-size: 11px; color: #888888; margin-bottom: 8px; letter-spacing: 0.1em; }
-  .input-row { display: flex; gap: 8px; }
+
   input[type="text"], textarea { background: #FFFFFF; border: 1px solid #E8E8E4; border-radius: 12px; padding: 12px 16px; color: #2B2B2B; font-size: 14px; outline: none; font-family: inherit; transition: border-color 0.2s; }
   input[type="text"]:focus, textarea:focus { border-color: #7B5CFA; }
   input[type="text"]::placeholder, textarea::placeholder { color: #CCCCCC; }
-  .input-row input { flex: 1; }
-  .btn-save { background: #7B5CFA; border: none; border-radius: 12px; padding: 12px 20px; color: white; font-size: 13px; cursor: pointer; font-weight: 700; font-family: inherit; white-space: nowrap; }
+
+  /* 하단 고정 입력바 */
+  .fixed-input-bar { position: fixed; bottom: 0; left: 64px; right: 0; max-width: 480px; background: #FAFAF7; border-top: 1px solid #E8E8E4; padding: 10px 16px; z-index: 200; display: flex; align-items: center; gap: 10px; }
+  .fixed-input-bar .mic-btn { width: 48px; height: 48px; min-width: 48px; border-radius: 50%; border: 2px solid #E8E8E4; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.06); -webkit-user-select: none; user-select: none; }
+  .fixed-input-bar .mic-btn.recording { border-color: #7B5CFA; background: rgba(123,92,250,0.06); box-shadow: 0 0 20px rgba(123,92,250,0.2); }
+  .fixed-input-bar input { flex: 1; border-radius: 24px; padding: 10px 16px; font-size: 14px; }
+  .fixed-input-bar .btn-save { background: #7B5CFA; border: none; border-radius: 24px; padding: 10px 18px; color: white; font-size: 13px; cursor: pointer; font-weight: 700; font-family: inherit; white-space: nowrap; }
 
   /* 목록 */
   .list-wrap { padding-top: 24px; }
@@ -109,117 +115,131 @@
   .api-status.none { color: #AAAAAA; }
 
   /* 채팅 뷰 */
-  .chat-wrap { width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; padding-bottom: 4px; }
+  .chat-wrap { width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-bottom: 4px; }
   .chat-bubble { background: #FFFFFF; border: 1px solid #E8E8E4; border-radius: 18px 18px 4px 18px; padding: 10px 14px; font-size: 14px; color: #2B2B2B; line-height: 1.6; align-self: flex-end; max-width: 90%; box-shadow: 0 1px 4px rgba(0,0,0,0.06); animation: fadeUp 0.2s ease; word-break: keep-all; }
-  .chat-bubble .bubble-time { font-size: 10px; color: #AAAAAA; margin-top: 4px; text-align: right; }
+  .chat-bubble .bubble-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+  .chat-bubble .bubble-time { font-size: 10px; color: #AAAAAA; }
+  .chat-bubble .bubble-edit-btn { background: none; border: 1px solid #D0D0CC; color: #999; font-size: 10px; padding: 2px 8px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+  .chat-bubble .bubble-edit-btn:active { border-color: #7B5CFA; color: #7B5CFA; }
   .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #7B5CFA; color: white; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 999; white-space: nowrap; }
   .toast.show { opacity: 1; }
-  .app-name { cursor: pointer; }
-  .mic-input-row { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; }
-  .mic-input-row .mic-btn { width: 80px; height: 80px; min-width: 80px; border-radius: 50%; border: 2px solid #E8E8E4; background: #FFFFFF; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.08); -webkit-user-select: none; user-select: none; }
-  .mic-input-row .mic-btn.recording { border-color: #7B5CFA; background: rgba(123,92,250,0.06); box-shadow: 0 0 32px rgba(123,92,250,0.2); }
-  .mic-input-right { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 </style>
 </head>
 <body>
 <div class="bg-glow"></div>
 <div id="toast" class="toast">✓ 기록됐어요</div>
-<div class="header">
-  <div class="header-top">
-    <div>
-      <div class="app-name" onclick="switchTab('record')">Remember Me</div>
-      <div class="date-str" id="dateStr"></div>
-    </div>
-    <div class="today-count">오늘 <span id="todayCount">0</span>개</div>
-  </div>
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('record')">기록</button>
-    <button class="tab" onclick="switchTab('list')">목록</button>
-    <button class="tab" onclick="switchTab('ask')">물어보기</button>
-    <button class="tab" onclick="switchTab('settings')">설정</button>
-  </div>
-</div>
 
-<div class="content">
-  <div id="tab-record" class="record-wrap">
-    <div class="status-text" id="statusText">탭하면 바로 시작</div>
-    <div class="silence-bar-wrap" id="silenceBarWrap"><div class="silence-bar" id="silenceBar" style="width:100%"></div></div>
-    <textarea class="transcript-edit" id="transcriptEdit" placeholder="음성이 여기에 나타나요..."></textarea>
-    <div class="transcript-actions" id="transcriptActions">
-      <button class="btn-discard" onclick="discardTranscript()">취소</button>
-      <button class="btn-confirm" onclick="confirmTranscript()">저장</button>
-    </div>
-    <div class="saved-msg" id="savedMsg"></div>
-    <div class="chat-wrap" id="chatWrap"></div>
-    <div class="mic-input-row">
-      <div class="mic-outer" id="micOuter">
-        <div class="ripple ripple1"></div>
-        <div class="ripple ripple2"></div>
-        <button class="mic-btn" id="micBtn" onclick="toggleRecord()">
-          <div class="mic-icon" id="micIcon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="#7B5CFA" opacity="0.9"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
-              <line x1="12" y1="19" x2="12" y2="23" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
-              <line x1="8" y1="23" x2="16" y2="23" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="wave-bars" id="waveBars" style="display:none">
-            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-          </div>
-        </button>
+<!-- 왼쪽 사이드바 -->
+<nav class="sidebar">
+  <button class="sidebar-item active" data-tab="record" onclick="switchTab('record')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2m-9-11h2m18 0h2"/></svg>
+    <span>기록</span>
+  </button>
+  <button class="sidebar-item" data-tab="list" onclick="switchTab('list')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <span>목록</span>
+  </button>
+  <button class="sidebar-item" data-tab="ask" onclick="switchTab('ask')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span>물어보기</span>
+  </button>
+  <button class="sidebar-item" data-tab="settings" onclick="switchTab('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>설정</span>
+  </button>
+</nav>
+
+<!-- 메인 영역 -->
+<div class="main-area">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="app-name" onclick="switchTab('record')">Remember Me</div>
+        <div class="date-str" id="dateStr"></div>
       </div>
-      <div class="mic-input-right">
-        <div class="input-row">
-          <input type="text" id="textInput" placeholder="생각을 적어요..." onkeydown="if(event.key==='Enter') saveText()">
-          <button class="btn-save" onclick="saveText()">저장</button>
+      <div class="today-count">오늘 <span id="todayCount">0</span>개</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="tab-record" class="record-wrap">
+      <div class="status-text" id="statusText">탭하면 바로 시작</div>
+      <div class="silence-bar-wrap" id="silenceBarWrap"><div class="silence-bar" id="silenceBar" style="width:100%"></div></div>
+      <textarea class="transcript-edit" id="transcriptEdit" placeholder="음성이 여기에 나타나요..."></textarea>
+      <div class="transcript-actions" id="transcriptActions">
+        <button class="btn-discard" onclick="discardTranscript()">취소</button>
+        <button class="btn-confirm" onclick="confirmTranscript()">저장</button>
+      </div>
+      <div class="saved-msg" id="savedMsg"></div>
+      <div class="chat-wrap" id="chatWrap"></div>
+    </div>
+
+    <div id="tab-list" class="list-wrap" style="display:none">
+      <div id="memoList"></div>
+    </div>
+
+    <div id="tab-ask" class="ask-wrap" style="display:none">
+      <div class="ask-hint">기록된 내용을 바탕으로 답해드려요.<br>"오늘 할 일 뭐야?", "최근에 뭐 생각했어?" 같이 물어보세요.</div>
+      <div class="ask-row">
+        <input type="text" id="queryInput" placeholder="기록에서 찾아드릴게요..." onkeydown="if(event.key==='Enter') askAI()">
+        <button class="btn-ask" id="askBtn" onclick="askAI()">물어보기</button>
+      </div>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="setQuery('오늘 기록 요약해줘')">오늘 기록 요약</button>
+        <button class="quick-btn" onclick="setQuery('할 일 뭐 있어?')">할 일</button>
+        <button class="quick-btn" onclick="setQuery('최근 아이디어 뭐야?')">최근 아이디어</button>
+        <button class="quick-btn" onclick="setQuery('이번 주 뭐 했지?')">이번 주</button>
+      </div>
+      <div class="ai-answer" id="aiAnswer"></div>
+    </div>
+
+    <div id="tab-settings" class="settings-wrap" style="display:none">
+      <div class="settings-section">
+        <div class="settings-label">AI 연결</div>
+        <div class="settings-title">Anthropic API 키</div>
+        <div class="settings-desc">summary와 tags 자동 생성에 필요합니다.<br>키는 이 기기에만 저장되며 외부로 전송되지 않아요.</div>
+        <div class="api-input-row">
+          <input class="api-input" type="password" id="apiKeyInput" placeholder="sk-ant-...">
+          <button class="btn-api-save" onclick="saveApiKey()">저장</button>
         </div>
+        <div class="api-status" id="apiStatus"></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">데이터</div>
+        <div class="settings-title">전체 기록 <span id="memoCountDisplay" style="color:#7B5CFA">0</span>개</div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">녹음</div>
+        <div class="settings-title">침묵 자동저장 시간: <span id="silenceLabel">10</span>초</div>
+        <input type="range" id="silenceSlider" min="5" max="30" value="10"
+          style="width:100%;margin-top:12px;accent-color:#7B5CFA"
+          oninput="updateSilenceSetting(this.value)">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#AAAAAA;margin-top:4px"><span>5초</span><span>30초</span></div>
       </div>
     </div>
   </div>
 
-  <div id="tab-list" class="list-wrap" style="display:none">
-    <div id="memoList"></div>
-  </div>
-
-  <div id="tab-ask" class="ask-wrap" style="display:none">
-    <div class="ask-hint">기록된 내용을 바탕으로 답해드려요.<br>"오늘 할 일 뭐야?", "최근에 뭐 생각했어?" 같이 물어보세요.</div>
-    <div class="ask-row">
-      <input type="text" id="queryInput" placeholder="기록에서 찾아드릴게요..." onkeydown="if(event.key==='Enter') askAI()">
-      <button class="btn-ask" id="askBtn" onclick="askAI()">물어보기</button>
+  <!-- 하단 고정 입력바 -->
+  <div class="fixed-input-bar">
+    <div class="mic-outer" id="micOuter">
+      <div class="ripple ripple1"></div>
+      <div class="ripple ripple2"></div>
+      <button class="mic-btn" id="micBtn" onclick="toggleRecord()">
+        <div class="mic-icon" id="micIcon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" fill="#7B5CFA" opacity="0.9"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="12" y1="19" x2="12" y2="23" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="8" y1="23" x2="16" y2="23" stroke="#7B5CFA" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="wave-bars" id="waveBars" style="display:none">
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+      </button>
     </div>
-    <div class="quick-btns">
-      <button class="quick-btn" onclick="setQuery('오늘 기록 요약해줘')">오늘 기록 요약</button>
-      <button class="quick-btn" onclick="setQuery('할 일 뭐 있어?')">할 일</button>
-      <button class="quick-btn" onclick="setQuery('최근 아이디어 뭐야?')">최근 아이디어</button>
-      <button class="quick-btn" onclick="setQuery('이번 주 뭐 했지?')">이번 주</button>
-    </div>
-    <div class="ai-answer" id="aiAnswer"></div>
-  </div>
-
-  <div id="tab-settings" class="settings-wrap" style="display:none">
-    <div class="settings-section">
-      <div class="settings-label">AI 연결</div>
-      <div class="settings-title">Anthropic API 키</div>
-      <div class="settings-desc">summary와 tags 자동 생성에 필요합니다.<br>키는 이 기기에만 저장되며 외부로 전송되지 않아요.</div>
-      <div class="api-input-row">
-        <input class="api-input" type="password" id="apiKeyInput" placeholder="sk-ant-...">
-        <button class="btn-api-save" onclick="saveApiKey()">저장</button>
-      </div>
-      <div class="api-status" id="apiStatus"></div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-label">데이터</div>
-      <div class="settings-title">전체 기록 <span id="memoCountDisplay" style="color:#7B5CFA">0</span>개</div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-label">녹음</div>
-      <div class="settings-title">침묵 자동저장 시간: <span id="silenceLabel">10</span>초</div>
-      <input type="range" id="silenceSlider" min="5" max="30" value="10"
-        style="width:100%;margin-top:12px;accent-color:#7B5CFA"
-        oninput="updateSilenceSetting(this.value)">
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:#AAAAAA;margin-top:4px"><span>5초</span><span>30초</span></div>
-    </div>
+    <input type="text" id="textInput" placeholder="생각을 적어요..." onkeydown="if(event.key==='Enter') saveText()">
+    <button class="btn-save" onclick="saveText()">저장</button>
   </div>
 </div>
 
@@ -254,7 +274,6 @@ function init() {
   document.getElementById('silenceSlider').value = savedDelay;
   document.getElementById('silenceLabel').textContent = savedDelay;
 
-  // 자동 마이크: 권한 이미 허용된 경우만 자동 시작
   if (navigator.permissions) {
     navigator.permissions.query({ name: 'microphone' }).then(function(result) {
       if (result.state === 'granted') {
@@ -266,12 +285,12 @@ function init() {
 
 function updateDateStr() {
   const d = new Date(), days = ['일','월','화','수','목','금','토'];
-  document.getElementById('dateStr').textContent = `${d.getMonth()+1}월 ${d.getDate()}일 ${days[d.getDay()]}요일`;
+  document.getElementById('dateStr').textContent = (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + days[d.getDay()] + '요일';
 }
 
 function updateTodayCount() {
   const today = new Date().toDateString();
-  document.getElementById('todayCount').textContent = memos.filter(m => new Date(m.ts).toDateString() === today).length;
+  document.getElementById('todayCount').textContent = memos.filter(function(m) { return new Date(m.ts).toDateString() === today; }).length;
 }
 
 function saveMemos() { localStorage.setItem(STORAGE_KEY, JSON.stringify(memos)); updateTodayCount(); }
@@ -279,34 +298,36 @@ function saveMemos() { localStorage.setItem(STORAGE_KEY, JSON.stringify(memos));
 function formatTime(ts) {
   const d = new Date(ts), now = new Date(), diff = now - d;
   if (diff < 60000) return '방금';
-  if (diff < 3600000) return `${Math.floor(diff/60000)}분 전`;
-  if (diff < 86400000) return `${Math.floor(diff/3600000)}시간 전`;
-  return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+  if (diff < 3600000) return Math.floor(diff/60000) + '분 전';
+  if (diff < 86400000) return Math.floor(diff/3600000) + '시간 전';
+  return (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
 function switchTab(tab) {
-  ['record','list','ask','settings'].forEach(t => {
+  ['record','list','ask','settings'].forEach(function(t) {
     document.getElementById('tab-'+t).style.display = 'none';
-    document.querySelector('.tab:nth-child('+(['record','list','ask','settings'].indexOf(t)+1)+')').classList.remove('active');
+    var el = document.querySelector('.sidebar-item[data-tab="'+t+'"]');
+    if (el) el.classList.remove('active');
   });
   document.getElementById('tab-'+tab).style.display = (tab === 'record') ? 'flex' : 'block';
-  document.querySelector('.tab:nth-child('+(['record','list','ask','settings'].indexOf(tab)+1)+')').classList.add('active');
+  var activeEl = document.querySelector('.sidebar-item[data-tab="'+tab+'"]');
+  if (activeEl) activeEl.classList.add('active');
   if (tab === 'list') renderList();
   if (tab === 'settings') document.getElementById('memoCountDisplay').textContent = memos.length;
 }
 
 function resetSilenceTimer() {
   clearSilenceTimer();
-  const barWrap = document.getElementById('silenceBarWrap');
-  const bar = document.getElementById('silenceBar');
+  var barWrap = document.getElementById('silenceBarWrap');
+  var bar = document.getElementById('silenceBar');
   barWrap.classList.add('visible');
   bar.style.width = '100%';
-  let elapsed = 0;
-  silenceInterval = setInterval(() => {
+  var elapsed = 0;
+  silenceInterval = setInterval(function() {
     elapsed += 100;
     bar.style.width = Math.max(0, 100 - (elapsed / SILENCE_DELAY_MS * 100)) + '%';
   }, 100);
-  silenceTimer = setTimeout(() => { if (isRecording) stopRecord(true); }, SILENCE_DELAY_MS);
+  silenceTimer = setTimeout(function() { if (isRecording) stopRecord(true); }, SILENCE_DELAY_MS);
 }
 
 function clearSilenceTimer() {
@@ -318,8 +339,7 @@ function clearSilenceTimer() {
 
 function toggleRecord() {
   if (isRecording) {
-    // 녹음 중 마이크 재탭 → 즉시 전송
-    const text = document.getElementById('transcriptEdit').value.trim() || finalTranscript.trim();
+    var text = document.getElementById('transcriptEdit').value.trim() || finalTranscript.trim();
     stopRecord(false);
     if (text) {
       addMemo(text);
@@ -334,29 +354,29 @@ function toggleRecord() {
 }
 
 function startRecord() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert('음성 인식은 Chrome 브라우저에서만 지원돼요.'); return; }
   finalTranscript = '';
-  const edit = document.getElementById('transcriptEdit');
+  var edit = document.getElementById('transcriptEdit');
   edit.value = ''; edit.classList.remove('visible');
   document.getElementById('transcriptActions').classList.remove('visible');
 
   function makeRecog() {
-    const r = new SR();
+    var r = new SR();
     r.lang = 'ko-KR'; r.continuous = false; r.interimResults = true; r.maxAlternatives = 1;
-    r.onresult = (e) => {
-      let interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
+    r.onresult = function(e) {
+      var interim = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
         else interim += e.results[i][0].transcript;
       }
-      const el = document.getElementById('transcriptEdit');
+      var el = document.getElementById('transcriptEdit');
       el.value = finalTranscript + (interim ? ' ' + interim : '');
       el.classList.add('visible');
       resetSilenceTimer();
     };
-    r.onerror = (e) => { if (e.error !== 'aborted' && e.error !== 'no-speech') stopRecord(false); };
-    r.onend = () => { if (isRecording) { try { recognition = makeRecog(); recognition.start(); } catch(err) {} } };
+    r.onerror = function(e) { if (e.error !== 'aborted' && e.error !== 'no-speech') stopRecord(false); };
+    r.onend = function() { if (isRecording) { try { recognition = makeRecog(); recognition.start(); } catch(err) {} } };
     return r;
   }
 
@@ -368,7 +388,7 @@ function stopRecord(autoSave) {
   clearSilenceTimer();
   if (recognition) { recognition.onend = null; recognition.stop(); recognition = null; }
   isRecording = false; setRecordingUI(false);
-  const edit = document.getElementById('transcriptEdit');
+  var edit = document.getElementById('transcriptEdit');
   edit.value = finalTranscript.trim();
   edit.placeholder = '여기서 수정할 수 있어요...';
   if (finalTranscript.trim()) {
@@ -384,7 +404,7 @@ function stopRecord(autoSave) {
 }
 
 function confirmTranscript() {
-  const text = document.getElementById('transcriptEdit').value.trim();
+  var text = document.getElementById('transcriptEdit').value.trim();
   if (!text) return;
   addMemo(text);
   document.getElementById('transcriptEdit').value = '';
@@ -405,16 +425,18 @@ function setRecordingUI(on) {
   document.getElementById('micOuter').classList.toggle('recording', on);
   document.getElementById('micIcon').style.display = on ? 'none' : 'block';
   document.getElementById('waveBars').style.display = on ? 'flex' : 'none';
-  const s = document.getElementById('statusText');
-  s.textContent = on ? '듣고 있어요 · 4초 침묵 시 자동저장' : '탭하면 바로 시작';
+  var s = document.getElementById('statusText');
+  s.textContent = on ? '듣고 있어요 · 침묵 시 자동저장' : '탭하면 바로 시작';
   s.classList.toggle('active', on);
 }
 
 function saveText() {
-  const input = document.getElementById('textInput');
-  const text = input.value.trim();
+  var input = document.getElementById('textInput');
+  var text = input.value.trim();
   if (!text) return;
-  addMemo(text); input.value = '';
+  addMemo(text);
+  input.value = '';
+  input.focus();
 }
 
 function updateSilenceSetting(val) {
@@ -424,61 +446,55 @@ function updateSilenceSetting(val) {
 }
 
 function renderChat() {
-  const wrap = document.getElementById('chatWrap');
+  var wrap = document.getElementById('chatWrap');
   if (!wrap) return;
-  const today = new Date().toDateString();
-  const todayMemos = memos.filter(m => new Date(m.ts).toDateString() === today);
+  var today = new Date().toDateString();
+  var todayMemos = memos.filter(function(m) { return new Date(m.ts).toDateString() === today; });
   if (todayMemos.length === 0) {
     wrap.innerHTML = '<div style="text-align:center;color:#BBBBBB;font-size:13px;padding:20px 0">오늘 기록이 여기 나타나요</div>';
     return;
   }
   wrap.innerHTML = todayMemos.slice().reverse().map(function(m) {
-    return '<div class="chat-bubble" id="bubble-' + m.id + '" ondblclick="editBubble(' + m.id + ')" ontouchend="handleBubbleTap(' + m.id + ')">' +
+    return '<div class="chat-bubble" id="bubble-' + m.id + '">' +
       '<div id="bubble-text-' + m.id + '">' + escHtml(m.text) + '</div>' +
-      '<div class="bubble-time">' + formatTime(m.ts) + '</div>' +
+      '<div class="bubble-footer">' +
+        '<button class="bubble-edit-btn" onclick="editBubble(' + m.id + ')">수정</button>' +
+        '<span class="bubble-time">' + formatTime(m.ts) + '</span>' +
+      '</div>' +
     '</div>';
   }).join('');
   wrap.scrollTop = wrap.scrollHeight;
 }
 
-// 모바일 더블탭 지원
-let lastTapTime = 0;
-let lastTapId = null;
-function handleBubbleTap(id) {
-  const now = Date.now();
-  if (lastTapId === id && now - lastTapTime < 400) {
-    editBubble(id);
-    lastTapTime = 0; lastTapId = null;
-  } else {
-    lastTapTime = now; lastTapId = id;
-  }
-}
-
 function editBubble(id) {
-  const textEl = document.getElementById('bubble-text-' + id);
+  var textEl = document.getElementById('bubble-text-' + id);
   if (!textEl) return;
-  const cur = memos.find(function(m) { return m.id === id; });
+  var cur = memos.find(function(m) { return m.id === id; });
   if (!cur) return;
-  textEl.innerHTML = '<textarea style="width:100%;border:none;outline:none;background:transparent;font-size:14px;font-family:inherit;resize:none;line-height:1.6" rows="2" id="bubble-input-' + id + '">' + escHtml(cur.text) + '</textarea>' +
-    '<div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-end">' +
-    '<button onclick="saveBubble(' + id + ')" style="background:#7B5CFA;color:white;border:none;border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer">완료</button>' +
-    '<button onclick="renderChat()" style="background:#F0F0EC;color:#888;border:none;border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer">취소</button>' +
+  var bubble = document.getElementById('bubble-' + id);
+  bubble.innerHTML =
+    '<textarea style="width:100%;border:1px solid #7B5CFA;outline:none;background:#FAFAF7;font-size:14px;font-family:inherit;resize:none;line-height:1.6;border-radius:8px;padding:8px" rows="3" id="bubble-input-' + id + '">' + escHtml(cur.text) + '</textarea>' +
+    '<div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">' +
+      '<button onclick="renderChat()" style="background:#F0F0EC;color:#888;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit">취소</button>' +
+      '<button onclick="saveBubble(' + id + ')" style="background:#7B5CFA;color:white;border:none;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:inherit">완료</button>' +
     '</div>';
+  var input = document.getElementById('bubble-input-' + id);
+  if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
 }
 
 function saveBubble(id) {
-  const input = document.getElementById('bubble-input-' + id);
+  var input = document.getElementById('bubble-input-' + id);
   if (!input) return;
-  const newText = input.value.trim();
+  var newText = input.value.trim();
   if (!newText) return;
-  const memo = memos.find(function(m) { return m.id === id; });
+  var memo = memos.find(function(m) { return m.id === id; });
   if (memo) { memo.text = newText; memo.raw_input = newText; saveMemos(); }
   renderChat();
 }
 
 function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  const status = document.getElementById('apiStatus');
+  var key = document.getElementById('apiKeyInput').value.trim();
+  var status = document.getElementById('apiStatus');
   if (!key) {
     localStorage.removeItem('rm_api_key');
     status.textContent = 'API 키가 삭제됐어요';
@@ -491,7 +507,7 @@ function saveApiKey() {
 }
 
 async function extractSummaryAndTags(rawInput) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  var res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -506,14 +522,14 @@ async function extractSummaryAndTags(rawInput) {
     })
   });
   if (!res.ok) throw new Error('API ' + res.status);
-  const data = await res.json();
-  const raw = (data.content && data.content[0] && data.content[0].text ? data.content[0].text : '').trim().replace(/```[a-z]*\n?/g, '');
+  var data = await res.json();
+  var raw = (data.content && data.content[0] && data.content[0].text ? data.content[0].text : '').trim().replace(/```[a-z]*\n?/g, '');
   return JSON.parse(raw);
 }
 
 async function addMemo(text) {
-  const raw_input = text.trim();
-  const memo = {
+  var raw_input = text.trim();
+  var memo = {
     id:        Date.now(),
     text:      raw_input,
     raw_input: raw_input,
@@ -525,7 +541,7 @@ async function addMemo(text) {
   memos.unshift(memo);
   saveMemos(); showSavedMsg(); renderChat();
   try {
-    const result = await extractSummaryAndTags(raw_input);
+    var result = await extractSummaryAndTags(raw_input);
     if (result.summary) memo.summary = result.summary;
     if (result.tags && result.tags.length) memo.tags = result.tags;
     saveMemos();
@@ -535,15 +551,15 @@ async function addMemo(text) {
 }
 
 function showSavedMsg() {
-  const toast = document.getElementById('toast');
+  var toast = document.getElementById('toast');
   toast.classList.add('show');
   setTimeout(function() { toast.classList.remove('show'); }, 1500);
 }
 
-function deleteMemo(id) { memos = memos.filter(function(m) { return m.id !== id; }); saveMemos(); renderList(); }
+function deleteMemo(id) { memos = memos.filter(function(m) { return m.id !== id; }); saveMemos(); renderList(); renderChat(); }
 
 function renderList() {
-  const container = document.getElementById('memoList');
+  var container = document.getElementById('memoList');
   if (memos.length === 0) {
     container.innerHTML = '<div class="empty-msg">아직 기록이 없어요.<br><span style="font-size:12px;color:#2a2a3e">기록 탭에서 말하거나 입력해보세요</span></div>';
     return;
@@ -557,14 +573,14 @@ function startEdit(id) {
   document.getElementById('editbtn-'+id).style.display = 'none';
   document.getElementById('savebtn-'+id).style.display = 'inline-block';
   document.getElementById('card-'+id).classList.add('editing');
-  const el = document.getElementById('edit-'+id);
+  var el = document.getElementById('edit-'+id);
   el.focus(); el.setSelectionRange(el.value.length, el.value.length);
 }
 
 function saveEdit(id) {
-  const newText = document.getElementById('edit-'+id).value.trim();
+  var newText = document.getElementById('edit-'+id).value.trim();
   if (!newText) return;
-  const memo = memos.find(function(m) { return m.id === id; });
+  var memo = memos.find(function(m) { return m.id === id; });
   if (memo) { memo.text = newText; saveMemos(); }
   renderList();
 }
@@ -573,15 +589,15 @@ function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 function setQuery(q) { document.getElementById('queryInput').value = q; }
 
 async function askAI() {
-  const query = document.getElementById('queryInput').value.trim();
+  var query = document.getElementById('queryInput').value.trim();
   if (!query) return;
-  const btn = document.getElementById('askBtn'), answerEl = document.getElementById('aiAnswer');
+  var btn = document.getElementById('askBtn'), answerEl = document.getElementById('aiAnswer');
   btn.disabled = true; btn.textContent = '...';
   answerEl.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
   answerEl.classList.add('visible');
-  const ctx = memos.slice(0,80).map(function(m) { const d = new Date(m.ts); return '[' + (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0') + '] ' + m.text; }).join('\n');
+  var ctx = memos.slice(0,80).map(function(m) { var d = new Date(m.ts); return '[' + (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0') + '] ' + m.text; }).join('\n');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -595,7 +611,7 @@ async function askAI() {
         messages: [{ role: 'user', content: query }]
       })
     });
-    const data = await res.json();
+    var data = await res.json();
     answerEl.textContent = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '답변을 가져올 수 없어요.';
   } catch(e) { answerEl.textContent = '연결 오류가 발생했어요.'; }
   btn.disabled = false; btn.textContent = '물어보기';
