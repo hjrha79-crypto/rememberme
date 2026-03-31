@@ -9,6 +9,7 @@
 <link rel="manifest" href="/rememberme/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/rememberme/icons/icon-192.png">
 <title>Remember Me</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { background: #FAFAF7; color: #2B2B2B; font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; min-height: 100vh; margin: 0; overflow-x: hidden; display: flex; }
@@ -243,6 +244,9 @@
 
 <script>
 const STORAGE_KEY = 'remembeme_v1';
+const supabaseUrl = 'https://pmdkmiayyzailcnmjhyo.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtZGttaWF5eXphaWxjbm1qaHlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NzA2NDIsImV4cCI6MjA4OTE0NjY0Mn0.6LerLolfmWmrCNlhtVCuNRcofVW42540Gy3QcNEwfK4';
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 function getApiKey() { return localStorage.getItem('rm_api_key') || ''; }
 let memos = [];
 let recognition = null;
@@ -341,7 +345,7 @@ function toggleRecord() {
     var text = input.value.trim();
     stopRecord(false);
     if (text) {
-      addMemo(text);
+      addMemo(text, 'voice');
       input.value = '';
       finalTranscript = '';
     }
@@ -385,7 +389,7 @@ function stopRecord(autoSave) {
   var input = document.getElementById('textInput');
   input.value = finalTranscript.trim();
   if (autoSave && finalTranscript.trim()) {
-    addMemo(finalTranscript.trim());
+    addMemo(finalTranscript.trim(), 'voice');
     input.value = '';
     finalTranscript = '';
   }
@@ -408,8 +412,9 @@ function saveText() {
   var input = document.getElementById('textInput');
   var text = input.value.trim();
   if (!text) return;
+  var type = finalTranscript ? 'voice' : 'text';
   if (isRecording) stopRecord(false);
-  addMemo(text);
+  addMemo(text, type);
   input.value = '';
   finalTranscript = '';
   input.focus();
@@ -504,7 +509,7 @@ async function extractSummaryAndTags(rawInput) {
   return JSON.parse(raw);
 }
 
-async function addMemo(text) {
+async function addMemo(text, inputType) {
   var raw_input = text.trim();
   var memo = {
     id:        Date.now(),
@@ -524,6 +529,20 @@ async function addMemo(text) {
     saveMemos();
   } catch (err) {
     console.warn('[RememberMe] summary/tags 추출 실패, fallback 유지:', err.message);
+  }
+  try {
+    await supabaseClient.from('thoughts').insert({
+      content: raw_input,
+      raw_input: raw_input,
+      agent: 'memory',
+      source_app: 'remember_me',
+      summary: memo.summary,
+      tags: memo.tags,
+      input_type: inputType || 'text',
+      created_at: new Date().toISOString()
+    });
+  } catch (err) {
+    console.warn('[RememberMe] Supabase 저장 실패:', err.message);
   }
 }
 
