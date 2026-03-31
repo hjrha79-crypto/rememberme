@@ -167,7 +167,7 @@
 
   <div class="content">
     <div id="tab-record" class="record-wrap">
-      <div class="status-text" id="statusText">탭하면 바로 시작</div>
+      <div class="status-text" id="statusText"></div>
       <div class="silence-bar-wrap" id="silenceBarWrap"><div class="silence-bar" id="silenceBar" style="width:100%"></div></div>
       <div class="saved-msg" id="savedMsg"></div>
       <div class="chat-wrap" id="chatWrap"></div>
@@ -401,7 +401,7 @@ function setRecordingUI(on) {
   document.getElementById('micIcon').style.display = on ? 'none' : 'block';
   document.getElementById('waveBars').style.display = on ? 'flex' : 'none';
   var s = document.getElementById('statusText');
-  s.textContent = on ? '듣고 있어요 · 침묵 시 자동저장' : '탭하면 바로 시작';
+  s.textContent = on ? '듣고 있어요 · 침묵 시 자동저장' : '';
   s.classList.toggle('active', on);
   var input = document.getElementById('textInput');
   input.classList.toggle('recording', on);
